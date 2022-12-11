@@ -3,6 +3,7 @@ import Data_storage
 import matplotlib.pyplot as plt
 from matplotlib import figure
 import gc
+import os
 class CalculationOfRotor:
 
     '''
@@ -84,7 +85,7 @@ class CalculationOfRotor:
 
         return exc_x_rot, exc_y_rot,res_x_rot, res_y_rot
 
-    def prepare_plot(self, Hz, SDM,exc_x_rot,exc_y_rot, res_x_rot, res_y_rot):
+    def prepare_plot(self, Hz, SDM, include_excitation,exc_x_rot,exc_y_rot, res_x_rot, res_y_rot):
         #fig, ax = plt.subplots(1, figsize=(25, 25))
         fig = figure.Figure(figsize=(25, 25))
         ax = fig.subplots(1)
@@ -92,13 +93,16 @@ class CalculationOfRotor:
         ax.set_aspect('equal')
         # ax.plot(res_x_rot, res_y_rot, label="pozycja odpowiedzi",color="magenta")
         ax.plot(res_x_rot, res_y_rot, label="pozycja odpowiedzi", color="orangered")
-        #ax.scatter(exc_x_rot,exc_y_rot, s = 15, label="pozycja wymuszenia")
+        if include_excitation:
+            ax.scatter(exc_x_rot,exc_y_rot, s = 15, label="pozycja wymuszenia")
         ax.set_xlabel('pozycja x [m]', fontsize=20)
         ax.set_ylabel('pozycja y [m]', fontsize=20)
         ax.tick_params(axis='x', labelsize=20)
         ax.tick_params(axis='y', labelsize=20)
         fig.legend(loc='upper right', fontsize=20)
-        file = r'/Users/bart/python/Rezonans_p3_11/wyniki/rotor'
+        file = f'{os.getcwd()}/results'
+        if not os.path.exists(file):
+            os.mkdir(file)
         fig.savefig(f"{file}/{round(Hz, 2):.2f}_Hz_{SDM[2]}_tlumienie.png")
 
         ax.clear()
@@ -115,16 +119,16 @@ class CalculationOfRotor:
 
         print(f"gotowe {Hz}")
 
-    def caltulate(self,start,end, ilosc, SDM, calculation_time, dt, mass_ecentricity):
+    def caltulate(self,start,end, ilosc, SDM, calculation_time, dt, mass_ecentricity, type_of_graph,include_excitaiton):
 
         for n in np.linspace(start,end,ilosc,False):
-            Hz = n
+
 
             # container to calculate sym for given Hz and model args
-            exc_x_rot, exc_y_rot, res_x_rot, res_y_rot = self.calculate_rotor(n, dt, calculation_time, SDM, mass_ecentricity, rotete_result=True)
+            exc_x_rot, exc_y_rot, res_x_rot, res_y_rot = self.calculate_rotor(n, dt, calculation_time, SDM, mass_ecentricity, type_of_graph)
 
             # prepare and save plot
-            self.prepare_plot(n, SDM,exc_x_rot, exc_y_rot, res_x_rot, res_y_rot)
+            self.prepare_plot(n, SDM,include_excitaiton,exc_x_rot, exc_y_rot, res_x_rot, res_y_rot)
             del(exc_x_rot)
             del(exc_y_rot)
             del(res_x_rot)
