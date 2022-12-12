@@ -50,10 +50,10 @@ class CalculationOfRotor:
 
     def calculate_rotor(self, Hz, dt, calculation_time, SDM, mass_eccentricity, rotate_result):
         t = 0
-        excitation_log = Data_storage.log_storage_rotor(SDM, dt, 0, True, False, False, False, False, False, False,
-                                                        False)
-        response_log = Data_storage.log_storage_rotor(SDM, dt, 1, True, False, False, False, False, False, False,
+        excitation_log = Data_storage.LogStorageRotor(SDM, dt, 0, True, False, False, False, False, False, False,
                                                       False)
+        response_log = Data_storage.LogStorageRotor(SDM, dt, 1, True, False, False, False, False, False, False,
+                                                    False)
         X = np.zeros((7, 2, 2))
         for i in range(int(calculation_time / dt)):
             self.calculate_one_cycle_of_jeff_linear_rotor_sym(t, dt, X, SDM, Hz, mass_eccentricity)
