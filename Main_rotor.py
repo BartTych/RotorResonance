@@ -1,39 +1,39 @@
 
 import RotorCalculation
-import Data_storage
 import numpy as np
-import matplotlib.pyplot as plt
 
 import multiprocessing
 
 
 
-# definition of system
 # setup
-#type of graph
+# type of graph
 type_of_graph = 1
 # 1 - rotating csys
 # 0 - non rotating csys
 
-include_excitation = 1
+include_excitation_in_graph = 1
 #1 - yes
 #0 - yes
 
-SDM = np.zeros((4))
-# stifness [N/m]
-SDM[0] = 10005350.0
-# rotating damping [N*m/s]
+# definition of system
+SDM = np.zeros((4)) # matrix of mechanical data
+# radial stiffness [N/m]
+SDM[0] = 10000000.0
+# rotating damping [N*m/s], not taken into account yet. Will be in future versions.
 SDM[1] = 0
-# nonrotating damping [N*m/s]
+# non rotating damping [N*m/s]
 SDM[2] = 400
-# mass [kg]
+# mass of rotor [kg]
 SDM[3] = 5
 
 # analysis definition
+# length of simulation time
 calculation_time = 0.2
-phase = 0.0
+# time step of analysis [s]
 dt = 0.000005
-mass_ecentricity = 0.01
+# distance between geometrical center and center of mass. Excitations of vibrations.
+mass_eccentricity = 0.01
 
 # end of setup
 
@@ -41,11 +41,11 @@ calculation = RotorCalculation.CalculationOfRotor()
 #calculation.caltulate(45,100, 1000, SDM, calculation_time, dt, mass_ecentricity)
 
 if __name__ == '__main__':
-    p_1 = multiprocessing.Process(target=calculation.caltulate, args=(45,100, 50, SDM, calculation_time, dt, mass_ecentricity,type_of_graph,include_excitation))
-    p_2 = multiprocessing.Process(target=calculation.caltulate, args=(100,155, 50, SDM, calculation_time, dt, mass_ecentricity,type_of_graph,include_excitation))
-    p_3 = multiprocessing.Process(target=calculation.caltulate, args=(155,210, 50, SDM, calculation_time, dt, mass_ecentricity, type_of_graph,include_excitation))
-    p_4 = multiprocessing.Process(target=calculation.caltulate, args=(210,265, 50, SDM, calculation_time, dt, mass_ecentricity, type_of_graph,include_excitation))
-    p_5 = multiprocessing.Process(target=calculation.caltulate, args=(265,320, 50, SDM, calculation_time, dt, mass_ecentricity, type_of_graph,include_excitation))
+    p_1 = multiprocessing.Process(target=calculation.caltulate, args=(45, 100, 50, SDM, calculation_time, dt, mass_eccentricity, type_of_graph, include_excitation_in_graph))
+    p_2 = multiprocessing.Process(target=calculation.caltulate, args=(100, 155, 50, SDM, calculation_time, dt, mass_eccentricity, type_of_graph, include_excitation_in_graph))
+    p_3 = multiprocessing.Process(target=calculation.caltulate, args=(155, 210, 50, SDM, calculation_time, dt, mass_eccentricity, type_of_graph, include_excitation_in_graph))
+    p_4 = multiprocessing.Process(target=calculation.caltulate, args=(210, 265, 50, SDM, calculation_time, dt, mass_eccentricity, type_of_graph, include_excitation_in_graph))
+    p_5 = multiprocessing.Process(target=calculation.caltulate, args=(265, 320, 50, SDM, calculation_time, dt, mass_eccentricity, type_of_graph, include_excitation_in_graph))
 
     p_1.start()
     p_2.start()

@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 from matplotlib import figure
 import gc
 import os
+
 class CalculationOfRotor:
 
     '''
