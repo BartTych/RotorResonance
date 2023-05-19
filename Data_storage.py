@@ -1,10 +1,7 @@
 import numpy as np
 
 
-class LogStorageRotor:
-    # operacje na danych pawinny byc gdzie indziej
-    # nie w tej klasie
-    # ona jest odpowiedzialna za przechowywanie danych i to wszystko
+class DataStorage:
     """
      class for log of data for X matrix made every n-th step
         schematics of X matrix:
@@ -24,38 +21,38 @@ class LogStorageRotor:
         Fd - force created because of damping
      """
     # niewiem czy to wogule jest potrzebne
-    log_column = int
-    pos = bool
-    vel = bool
-    acc = bool
-
-    force = bool
-    dumping = bool
-    inertia = bool
-    force_control_sum = bool
-    power = bool
-
-    x_pos_log = list
-    y_pos_log = list
-
-    x_vel_log = list
-    y_vel_log = list
-
-    x_acc_log = list
-    y_acc_log = list
-
-    x_force_log = list
-    y_force_log = list
-    x_inertia_log = list
-    y_inertia_log = list
-    x_dumping_log = list
-    y_dumping_log = list
-
-    x_force_control_sum_log = list
-    y_force_control_sum_log = list
-
-    SDM = np.zeros((3, 2))
-    dt = float
+    # log_column = int
+    # pos = bool
+    # vel = bool
+    # acc = bool
+    #
+    # force = bool
+    # dumping = bool
+    # inertia = bool
+    # force_control_sum = bool
+    # power = bool
+    #
+    # x_pos_log = list
+    # y_pos_log = list
+    #
+    # x_vel_log = list
+    # y_vel_log = list
+    #
+    # x_acc_log = list
+    # y_acc_log = list
+    #
+    # x_force_log = list
+    # y_force_log = list
+    # x_inertia_log = list
+    # y_inertia_log = list
+    # x_dumping_log = list
+    # y_dumping_log = list
+    #
+    # x_force_control_sum_log = list
+    # y_force_control_sum_log = list
+    #
+    # SDM = np.zeros((3, 2))
+    # dt = float
 
 
     def __init__(self, SDM, dt, log_column, position, velocity, acceleration, force, dumping, inertia,
@@ -134,35 +131,6 @@ class LogStorageRotor:
 
     # te jest cos co niepowinno byc w tej klasie
     # to sa modyfikacj na denych
-    def rotate_excitation_by_phase_angle_of_loging(self):
-        for i, n in enumerate(self.phase_angle):
-            self.rotate_excitation_data_point_by_phase_angle(i)
-
-    def rotate_response_by_phase_angle_of_loging(self):
-        for i, n in enumerate(self.phase_angle):
-            self.rotate_response_data_point_by_phase_angle(i, n)
-
-    def rotate_excitation_data_point_by_phase_angle(self, i):
-        x = self.x_pos_log[i]
-        y = self.y_pos_log[i]
-
-        r = np.sqrt(x**2 + y**2)
-
-        self.x_pos_log[i] = r
-        self.y_pos_log[i] = 0
-
-    def rotate_response_data_point_by_phase_angle(self, i, n):
-        x = self.x_pos_log[i]
-        y = self.y_pos_log[i]
-
-        r = np.sqrt(x**2 + y**2)
-        response_phase = np.angle([complex(x, y)])
-
-        new_phase = response_phase - n
-        self.x_pos_log[i] = r * np.cos(new_phase)
-        self.y_pos_log[i] = r * np.sin(new_phase)
-
-
 
     def log_phase_angle(self, angle):
         self.phase_angle.append(angle)

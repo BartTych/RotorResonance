@@ -1,9 +1,6 @@
 import numpy as np
 import Data_storage
-import matplotlib.pyplot as plt
-from matplotlib import figure
-import gc
-import os
+from Ploting import Plot
 from csys_rot import Ratate_csys
 
 class CalculationOfRotor:
@@ -35,32 +32,35 @@ class CalculationOfRotor:
         row 6 [6][0][0] x_Fd_exc   [6][0][1] y_Fd_exc    [6][1][0] x_Fd_r  [6][1][1] y_Fd_r
     """
 
-    def __init__(self):
-        pass
+
 
     def calculate_rotor_sym_for_range_of_frequencies(self, start_hz, end_hz, number_of_simulations, SDM,
                                                      calculation_time, dt, mass_eccentricity, type_of_graph,
                                                      include_excitation):
 
         for n in np.linspace(start_hz, end_hz, number_of_simulations, False):
-            exc_x_rot, exc_y_rot, res_x_rot, res_y_rot = self.calculate_rotor(n, dt, calculation_time,
-                                                                              SDM, mass_eccentricity, type_of_graph)
-            # prepare and save plot
-            self.prepare_plot(n, include_excitation, exc_x_rot, exc_y_rot, res_x_rot, res_y_rot)
+            exc_x_rot, exc_y_rot, res_x_rot, res_y_rot = self.calculate_rotor_for_one_frequency(n, dt, calculation_time,
+                                                                                                SDM, mass_eccentricity, type_of_graph)
 
-    def calculate_rotor(self, Hz, dt, calculation_time, SDM, mass_eccentricity, rotate_result):
+            Plot.prepare_plot(n, include_excitation, exc_x_rot, exc_y_rot, res_x_rot, res_y_rot)
+
+    def calculate_rotor_for_one_frequency(self, Hz, dt, calculation_time, SDM, mass_eccentricity, rotate_result):
         t = 0
-        excitation_log = Data_storage.LogStorageRotor(SDM, dt, 0, True, False, False, False, False, False, False,
-                                                      False)
-        response_log = Data_storage.LogStorageRotor(SDM, dt, 1, True, False, False, False, False, False, False,
-                                                    False)
-        X = np.zeros((7, 2, 2))
-        for i in range(int(calculation_time / dt)):
-            self.calculate_one_cycle_of_jeff_linear_rotor_sym(t, dt, X, SDM, Hz, mass_eccentricity)
-            phase = self.calculate_phase_angle(t, Hz)
 
-            excitation_log.log_data(X, i, phase, for_every_n=1)
-            response_log.log_data(X, i, phase, for_every_n=1)
+        excitation_log = Data_storage.DataStorage(SDM, dt, 0, True, False, False, False, False, False, False,
+                                                  False)
+        response_log = Data_storage.DataStorage(SDM, dt, 1, True, False, False, False, False, False, False,
+                                                False)
+
+        # X_matrix matrix - see doc
+        X_matrix = np.zeros((7, 2, 2))
+
+        for i in range(int(calculation_time / dt)):
+            self.__calculate_one_cycle_of_jeff_linear_rotor_sym(t, dt, X_matrix, SDM, Hz, mass_eccentricity)
+            phase = self.__calculate_phase_angle(t, Hz)
+
+            excitation_log.log_data(X_matrix, i, phase, for_every_n=1)
+            response_log.log_data(X_matrix, i, phase, for_every_n=1)
             t += dt
 
         if rotate_result:
@@ -72,33 +72,7 @@ class CalculationOfRotor:
 
         return exc_x_rot, exc_y_rot, res_x_rot, res_y_rot
 
-    # to nie jest ok bo przygotowanie wykesu jest juz inna funkcjonalnascia niz
-    # robienie abliczen
-    @staticmethod
-    def prepare_plot(Hz, include_excitation, exc_x_rot, exc_y_rot, res_x_rot, res_y_rot):
-        fig = figure.Figure(figsize=(25, 25))
-        ax = fig.subplots(1)
-        ax.set_aspect('equal')
-        ax.plot(res_x_rot, res_y_rot, label="position of response", color="orangered")
-        if include_excitation:
-            ax.scatter(exc_x_rot, exc_y_rot, s=15, label="position of excitation")
-        ax.set_xlabel('position x [m]', fontsize=20)
-        ax.set_ylabel('position y [m]', fontsize=20)
-        ax.tick_params(axis='x', labelsize=20)
-        ax.tick_params(axis='y', labelsize=20)
-        fig.legend(loc='upper right', fontsize=20)
-        file = f'{os.getcwd()}/results'
-        if not os.path.exists(file):
-            os.mkdir(file)
-        fig.savefig(f"{file}/{round(Hz, 2):.2f}_Hz.png")
-
-        ax.clear()
-        plt.close('all')
-        gc.collect()
-
-        print(f"calculated frequency :{Hz}")
-
-    def calculate_one_cycle_of_jeff_linear_rotor_sym(self, T, dt, X, SDM, Hz, mass_eccentricity):
+    def __calculate_one_cycle_of_jeff_linear_rotor_sym(self, T, dt, X, SDM, Hz, mass_eccentricity):
         self.cal_new_poz(X, T, dt, Hz, mass_eccentricity)
         self.cal_new_velocity(X, T, dt, Hz, mass_eccentricity)
 
@@ -115,11 +89,11 @@ class CalculationOfRotor:
         self.cal_new_accelerations(X, SDM, T, dt, Hz, mass_eccentricity)
 
     @staticmethod
-    def calculate_phase_angle(T, Hz):
+    def __calculate_phase_angle(T, Hz):
         return 2 * np.pi * T * Hz
 
     @staticmethod
-    def calc_position_of_exc(T, Hz, ecc):
+    def __calc_position_of_exc(T, Hz, ecc):
         return ecc * np.cos(2 * np.pi * Hz * T), ecc * np.sin(2 * np.pi * Hz * T)
 
     @staticmethod
@@ -133,7 +107,7 @@ class CalculationOfRotor:
 
     def cal_new_poz(self, X, T, dt, Hz, ecc):
         # calc new position of excitation
-        X[0][0][0], X[0][0][1] = self.calc_position_of_exc(T, Hz, ecc)
+        X[0][0][0], X[0][0][1] = self.__calc_position_of_exc(T, Hz, ecc)
 
         # calc new position of response
         X[0][1][0] = X[0][1][0] + X[1][1][0] * dt

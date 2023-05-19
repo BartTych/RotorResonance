@@ -1,11 +1,11 @@
 
-from Data_storage import LogStorageRotor
+from Data_storage import DataStorage
 import numpy as np
 
 class Ratate_csys:
 
     @staticmethod
-    def rotate_excitation_by_phase_angle_of_loging(dataToRotate: LogStorageRotor):
+    def rotate_excitation_by_phase_angle_of_loging(dataToRotate: DataStorage):
         X, Y = dataToRotate.get_pos_data()
 
         for i, angle in enumerate(X):
@@ -13,7 +13,7 @@ class Ratate_csys:
         return X, Y
 
     @staticmethod
-    def rotate_response_by_phase_angle_of_loging(dataToRotate: LogStorageRotor):
+    def rotate_response_by_phase_angle_of_loging(dataToRotate: DataStorage):
         phaseData = dataToRotate.get_phase_angle()
         X,Y = dataToRotate.get_pos_data()
 
