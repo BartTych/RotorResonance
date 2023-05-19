@@ -11,7 +11,7 @@ type_of_graph = 1
 # 1 - rotating csys
 # 0 - non rotating csys
 
-include_excitation_in_graph = 1
+include_excitation_in_graph = 0
 # 1 - yes
 # 0 - yes
 

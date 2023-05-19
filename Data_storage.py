@@ -2,7 +2,9 @@ import numpy as np
 
 
 class LogStorageRotor:
-
+    # operacje na danych pawinny byc gdzie indziej
+    # nie w tej klasie
+    # ona jest odpowiedzialna za przechowywanie danych i to wszystko
     """
      class for log of data for X matrix made every n-th step
         schematics of X matrix:
@@ -21,6 +23,7 @@ class LogStorageRotor:
         Fk - force created because of stiffness
         Fd - force created because of damping
      """
+    # niewiem czy to wogule jest potrzebne
     log_column = int
     pos = bool
     vel = bool
@@ -53,6 +56,7 @@ class LogStorageRotor:
 
     SDM = np.zeros((3, 2))
     dt = float
+
 
     def __init__(self, SDM, dt, log_column, position, velocity, acceleration, force, dumping, inertia,
                  force_control_sum, power):
@@ -94,6 +98,10 @@ class LogStorageRotor:
 
         self.moment_power = []
 
+    # log ma mylaca nazwe bo to jest wewnetrzna funkcja
+    # to co moge tez zmienic to jak decyduje co ma byc logowane
+    # powinna to poprostu lista jako parametr ce mega zwiekszy czytelnocs
+
     def log_data(self, X, i, phase_angle, for_every_n):
         if np.mod(i, for_every_n) == 0:
             self.log_phase_angle(phase_angle)
@@ -124,6 +132,8 @@ class LogStorageRotor:
         self.x_pos_log = self.x_pos_log * scale
         self.y_pos_log = self.y_pos_log * scale
 
+    # te jest cos co niepowinno byc w tej klasie
+    # to sa modyfikacj na denych
     def rotate_excitation_by_phase_angle_of_loging(self):
         for i, n in enumerate(self.phase_angle):
             self.rotate_excitation_data_point_by_phase_angle(i)
@@ -151,6 +161,8 @@ class LogStorageRotor:
         new_phase = response_phase - n
         self.x_pos_log[i] = r * np.cos(new_phase)
         self.y_pos_log[i] = r * np.sin(new_phase)
+
+
 
     def log_phase_angle(self, angle):
         self.phase_angle.append(angle)
@@ -210,3 +222,6 @@ class LogStorageRotor:
 
     def get_moment_power(self):
         return self.moment_power
+
+    def get_phase_angle(self):
+        return self.phase_angle

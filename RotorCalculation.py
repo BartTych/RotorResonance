@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 from matplotlib import figure
 import gc
 import os
-
+from csys_rot import Ratate_csys
 
 class CalculationOfRotor:
 
@@ -62,17 +62,18 @@ class CalculationOfRotor:
             excitation_log.log_data(X, i, phase, for_every_n=1)
             response_log.log_data(X, i, phase, for_every_n=1)
             t += dt
-        # rotation of calculated data csys
-        if rotate_result:
-            response_log.rotate_response_by_phase_angle_of_loging()
-            excitation_log.rotate_excitation_by_phase_angle_of_loging()
 
-        # get calculated data
-        exc_x_rot, exc_y_rot = excitation_log.get_pos_data()
-        res_x_rot, res_y_rot = response_log.get_pos_data()
+        if rotate_result:
+            exc_x_rot, exc_y_rot = Ratate_csys.rotate_excitation_by_phase_angle_of_loging(excitation_log)
+            res_x_rot, res_y_rot = Ratate_csys.rotate_response_by_phase_angle_of_loging(response_log)
+        else:
+            exc_x_rot, exc_y_rot = excitation_log.get_pos_data()
+            res_x_rot, res_y_rot = response_log.get_pos_data()
 
         return exc_x_rot, exc_y_rot, res_x_rot, res_y_rot
 
+    # to nie jest ok bo przygotowanie wykesu jest juz inna funkcjonalnascia niz
+    # robienie abliczen
     @staticmethod
     def prepare_plot(Hz, include_excitation, exc_x_rot, exc_y_rot, res_x_rot, res_y_rot):
         fig = figure.Figure(figsize=(25, 25))
