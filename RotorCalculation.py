@@ -32,38 +32,42 @@ class CalculationOfRotor:
         row 6 [6][0][0] x_Fd_exc   [6][0][1] y_Fd_exc    [6][1][0] x_Fd_r  [6][1][1] y_Fd_r
     """
 
+    def __init__(self, SDM, mass_eccentricity, calculation_time, type_of_graph, include_excitation, dt):
 
+        self.dt = dt
+        self.include_excitation = include_excitation
+        self.type_of_graph = type_of_graph
+        self.calculation_time = calculation_time
+        self.mass_eccentricity = mass_eccentricity
+        self.SDM = SDM
 
-    def calculate_rotor_sym_for_range_of_frequencies(self, start_hz, end_hz, number_of_simulations, SDM,
-                                                     calculation_time, dt, mass_eccentricity, type_of_graph,
-                                                     include_excitation):
+    def calculate_rotor_sym_for_range_of_frequencies(self, start_hz, end_hz, number_of_simulations):
 
-        for n in np.linspace(start_hz, end_hz, number_of_simulations, False):
-            exc_x_rot, exc_y_rot, res_x_rot, res_y_rot = self.calculate_rotor_for_one_frequency(n, dt, calculation_time,
-                                                                                                SDM, mass_eccentricity, type_of_graph)
+        for frequency in np.linspace(start_hz, end_hz, number_of_simulations, False):
+            exc_x_rot, exc_y_rot, res_x_rot, res_y_rot = self.__calculate_rotor_for_one_frequency(frequency)
 
-            Plot.prepare_plot(n, include_excitation, exc_x_rot, exc_y_rot, res_x_rot, res_y_rot)
+            Plot.prepare_plot(frequency, self.include_excitation, exc_x_rot, exc_y_rot, res_x_rot, res_y_rot)
 
-    def calculate_rotor_for_one_frequency(self, Hz, dt, calculation_time, SDM, mass_eccentricity, rotate_result):
+    def __calculate_rotor_for_one_frequency(self, Hz):
         t = 0
 
-        excitation_log = Data_storage.DataStorage(SDM, dt, 0, True, False, False, False, False, False, False,
+        excitation_log = Data_storage.DataStorage(self.SDM, self.dt, 0, True, False, False, False, False, False, False,
                                                   False)
-        response_log = Data_storage.DataStorage(SDM, dt, 1, True, False, False, False, False, False, False,
+        response_log = Data_storage.DataStorage(self.SDM, self.dt, 1, True, False, False, False, False, False, False,
                                                 False)
 
         # X_matrix matrix - see doc
         X_matrix = np.zeros((7, 2, 2))
 
-        for i in range(int(calculation_time / dt)):
-            self.__calculate_one_cycle_of_jeff_linear_rotor_sym(t, dt, X_matrix, SDM, Hz, mass_eccentricity)
+        for i in range(int(self.calculation_time / self.dt)):
+            self.__calculate_one_cycle_of_jeff_linear_rotor_sym(t,X_matrix, Hz)
             phase = self.__calculate_phase_angle(t, Hz)
 
             excitation_log.log_data(X_matrix, i, phase, for_every_n=1)
             response_log.log_data(X_matrix, i, phase, for_every_n=1)
-            t += dt
+            t += self.dt
 
-        if rotate_result:
+        if self.type_of_graph:
             exc_x_rot, exc_y_rot = Ratate_csys.rotate_excitation_by_phase_angle_of_loging(excitation_log)
             res_x_rot, res_y_rot = Ratate_csys.rotate_response_by_phase_angle_of_loging(response_log)
         else:
@@ -72,81 +76,82 @@ class CalculationOfRotor:
 
         return exc_x_rot, exc_y_rot, res_x_rot, res_y_rot
 
-    def __calculate_one_cycle_of_jeff_linear_rotor_sym(self, T, dt, X, SDM, Hz, mass_eccentricity):
-        self.__cal_new_poz(X, T, dt, Hz, mass_eccentricity)
-        self.__cal_new_velocity(X, T, dt, Hz, mass_eccentricity)
+    def __calculate_one_cycle_of_jeff_linear_rotor_sym(self, T, X, Hz):
+        self.__cal_new_poz(X, T, Hz)
+        self.__cal_new_velocity(X, T,Hz)
 
         # s - stiffness
-        self.__cal_new_s_forces_n(X, SDM)
+        self.__cal_new_s_forces_n(X)
         # d - damping
-        self.__cal_new_d_forces(X, SDM)
+        self.__cal_new_d_forces(X)
 
         # a - acceleration
-        self.__cal_new_a_forces(X, SDM)
+        self.__cal_new_a_forces(X)
         # f - force
         self.__cal_new_f_sum(X)
 
-        self.__cal_new_accelerations(X, SDM, T, dt, Hz, mass_eccentricity)
+        self.__cal_new_accelerations(X, T, Hz)
 
     @staticmethod
     def __calculate_phase_angle(T, Hz):
         return 2 * np.pi * T * Hz
 
-    @staticmethod
-    def __calc_position_of_exc(T, Hz, ecc):
-        return ecc * np.cos(2 * np.pi * Hz * T), ecc * np.sin(2 * np.pi * Hz * T)
 
-    @staticmethod
-    def __calc_velocity_of_exc(T, Hz, ecc):
-        return -ecc * 2 * np.pi * Hz * np.sin(2 * np.pi * Hz * T), ecc * 2 * np.pi * Hz * np.cos(2 * np.pi * Hz * T)
+    def __calc_position_of_exc(self, T, Hz):
+        return self.mass_eccentricity * np.cos(2 * np.pi * Hz * T),\
+               self.mass_eccentricity * np.sin(2 * np.pi * Hz * T)
 
-    @staticmethod
-    def __calc_acceleration_of_exc(T, Hz, ecc):
-        return -ecc * (2 * np.pi * Hz)**2 * np.cos(2 * np.pi * Hz * T),\
-               -ecc * (2 * np.pi * Hz)**2 * np.sin(2 * np.pi * Hz * T)
 
-    def __cal_new_poz(self, X, T, dt, Hz, ecc):
+    def __calc_velocity_of_exc(self, T, Hz):
+        return -self.mass_eccentricity * 2 * np.pi * Hz * np.sin(2 * np.pi * Hz * T),\
+               self.mass_eccentricity * 2 * np.pi * Hz * np.cos(2 * np.pi * Hz * T)
+
+
+    def __calc_acceleration_of_exc(self, T, Hz):
+        return -self.mass_eccentricity * (2 * np.pi * Hz)**2 * np.cos(2 * np.pi * Hz * T),\
+               -self.mass_eccentricity * (2 * np.pi * Hz)**2 * np.sin(2 * np.pi * Hz * T)
+
+    def __cal_new_poz(self, X, T, Hz):
         # calc new position of excitation
-        X[0][0][0], X[0][0][1] = self.__calc_position_of_exc(T, Hz, ecc)
+        X[0][0][0], X[0][0][1] = self.__calc_position_of_exc(T, Hz)
 
         # calc new position of response
-        X[0][1][0] = X[0][1][0] + X[1][1][0] * dt
-        X[0][1][1] = X[0][1][1] + X[1][1][1] * dt
+        X[0][1][0] = X[0][1][0] + X[1][1][0] * self.dt
+        X[0][1][1] = X[0][1][1] + X[1][1][1] * self.dt
 
-    def __cal_new_velocity(self, X, T, dt, Hz, ecc):
+    def __cal_new_velocity(self, X, T, Hz):
         # calc new velocity of excitation
-        X[1][0][0], X[1][0][1] = self.__calc_velocity_of_exc(T, Hz, ecc)
+        X[1][0][0], X[1][0][1] = self.__calc_velocity_of_exc(T, Hz)
 
         # calc new velocity of response
-        X[1][1][0] = X[1][1][0] + X[2][1][0] * dt
-        X[1][1][1] = X[1][1][1] + X[2][1][1] * dt
+        X[1][1][0] = X[1][1][0] + X[2][1][0] * self.dt
+        X[1][1][1] = X[1][1][1] + X[2][1][1] * self.dt
 
-    def __cal_new_accelerations(self, X, SDM, T, dt, Hz, ecc):
+    def __cal_new_accelerations(self, X, T, Hz):
         # excitation
-        X[2][0][0], X[2][0][1] = self.__calc_acceleration_of_exc(T, Hz, ecc)
+        X[2][0][0], X[2][0][1] = self.__calc_acceleration_of_exc(T, Hz)
 
         # response
-        X[2][1][0] = X[3][1][0]/SDM[3]
-        X[2][1][1] = X[3][1][1]/SDM[3]
+        X[2][1][0] = X[3][1][0]/self.SDM[3]
+        X[2][1][1] = X[3][1][1]/self.SDM[3]
 
-    @staticmethod
-    def __cal_new_s_forces_n(X, SDM):
+
+    def __cal_new_s_forces_n(self, X):
         # stiffness forces acting on excitation
-        X[5][0][0] = SDM[0] * X[0][1][0]
-        X[5][0][1] = SDM[0] * X[0][1][1]
+        X[5][0][0] = self.SDM[0] * X[0][1][0]
+        X[5][0][1] = self.SDM[0] * X[0][1][1]
         # stiffness forces acting on excitation
-        X[5][1][0] = -SDM[0] * X[0][1][0]
-        X[5][1][1] = -SDM[0] * X[0][1][1]
+        X[5][1][0] = -self.SDM[0] * X[0][1][0]
+        X[5][1][1] = -self.SDM[0] * X[0][1][1]
 
-    @staticmethod
-    def __cal_new_d_forces(X, SDM):
-        X[6][1][0] = -SDM[2] * X[1][1][0]
-        X[6][1][1] = -SDM[2] * X[1][1][1]
 
-    @staticmethod
-    def __cal_new_a_forces(X, SDM):
-        X[4][1][0] = -SDM[3] * X[2][0][0]
-        X[4][1][1] = -SDM[3] * X[2][0][1]
+    def __cal_new_d_forces(self, X):
+        X[6][1][0] = -self.SDM[2] * X[1][1][0]
+        X[6][1][1] = -self.SDM[2] * X[1][1][1]
+
+    def __cal_new_a_forces(self, X):
+        X[4][1][0] = -self.SDM[3] * X[2][0][0]
+        X[4][1][1] = -self.SDM[3] * X[2][0][1]
 
     @staticmethod
     def __cal_new_f_sum(X):

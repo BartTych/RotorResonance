@@ -36,24 +36,20 @@ mass_eccentricity = 0.01
 
 # end of setup
 
-calculation = RotorCalculation.CalculationOfRotor()
+calculation = RotorCalculation.CalculationOfRotor(SDM,mass_eccentricity,calculation_time,
+                                                  type_of_graph,include_excitation_in_graph,dt)
 
 if __name__ == '__main__':
     p_1 = multiprocessing.Process(target=calculation.calculate_rotor_sym_for_range_of_frequencies,
-                                  args=(45, 100, 50, SDM, calculation_time, dt, mass_eccentricity,
-                                        type_of_graph, include_excitation_in_graph))
+                                  args=(45, 100, 55))
     p_2 = multiprocessing.Process(target=calculation.calculate_rotor_sym_for_range_of_frequencies,
-                                  args=(100, 155, 50, SDM, calculation_time, dt, mass_eccentricity,
-                                        type_of_graph, include_excitation_in_graph))
+                                  args=(100, 155, 55))
     p_3 = multiprocessing.Process(target=calculation.calculate_rotor_sym_for_range_of_frequencies,
-                                  args=(155, 210, 50, SDM, calculation_time, dt, mass_eccentricity,
-                                        type_of_graph, include_excitation_in_graph))
+                                  args=(155, 210, 55))
     p_4 = multiprocessing.Process(target=calculation.calculate_rotor_sym_for_range_of_frequencies,
-                                  args=(210, 265, 50, SDM, calculation_time, dt, mass_eccentricity,
-                                        type_of_graph, include_excitation_in_graph))
+                                  args=(210, 265, 55))
     p_5 = multiprocessing.Process(target=calculation.calculate_rotor_sym_for_range_of_frequencies,
-                                  args=(265, 320, 50, SDM, calculation_time, dt, mass_eccentricity,
-                                        type_of_graph, include_excitation_in_graph))
+                                  args=(265, 320, 55))
 
     p_1.start()
     p_2.start()
